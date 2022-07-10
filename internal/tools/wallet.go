@@ -32,7 +32,8 @@ import (
 )
 
 type FlagsWallet struct {
-	Port uint `default:"8701" flag:"port" info:"Dev wallet port to listen on"`
+	Port uint   `default:"8701" flag:"port" info:"Dev wallet port to listen on"`
+	Host string `default:"http://localhost:8888" flag:"emulator-host" info:"Host for access node connection"`
 }
 
 var walletFlags = FlagsWallet{}
@@ -61,11 +62,14 @@ func wallet(
 	}
 
 	key := service.Key().ToConfig()
+
 	conf := devWallet.Config{
-		Address:    fmt.Sprintf("0x%s", service.Address().String()),
-		PrivateKey: strings.TrimPrefix(key.PrivateKey.String(), "0x"),
-		PublicKey:  strings.TrimPrefix(key.PrivateKey.PublicKey().String(), "0x"),
-		AccessNode: "http://localhost:8080",
+		Address:      fmt.Sprintf("0x%s", service.Address().String()),
+		PrivateKey:   strings.TrimPrefix(key.PrivateKey.String(), "0x"),
+		PublicKey:    strings.TrimPrefix(key.PrivateKey.PublicKey().String(), "0x"),
+		AccessNode:   walletFlags.Host,
+		AccountKeyID: "0",
+		BaseURL:      "http://localhost:8701",
 	}
 
 	srv, err := devWallet.NewHTTPServer(walletFlags.Port, &conf)
