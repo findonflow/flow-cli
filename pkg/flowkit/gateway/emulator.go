@@ -30,6 +30,7 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	flowGo "github.com/onflow/flow-go/model/flow"
 	"github.com/rs/zerolog"
+	"golang.org/x/exp/maps"
 	"google.golang.org/grpc/status"
 
 	"github.com/onflow/flow-cli/pkg/flowkit"
@@ -42,6 +43,7 @@ type EmulatorGateway struct {
 	ctx             context.Context
 	logger          *zerolog.Logger
 	emulatorOptions []emulator.Option
+	snapshots       map[string]backend.Emulator
 }
 
 func UnwrapStatusError(err error) error {
@@ -58,6 +60,7 @@ func NewEmulatorGatewayWithOpts(serviceAccount *flowkit.Account, opts ...func(*E
 		ctx:             context.Background(),
 		logger:          &zerolog.Logger{},
 		emulatorOptions: []emulator.Option{},
+		snapshots:       map[string]backend.Emulator{},
 	}
 	for _, opt := range opts {
 		opt(gateway)
@@ -305,4 +308,21 @@ func (g *EmulatorGateway) GetLatestProtocolStateSnapshot() ([]byte, error) {
 // SecureConnection placeholder func to complete gateway interface implementation
 func (g *EmulatorGateway) SecureConnection() bool {
 	return false
+}
+
+func (g *EmulatorGateway) CreateSnapshot(name string) {
+	g.snapshots[name] = g.backend.GetEmulator()
+}
+
+func (g *EmulatorGateway) LoadSnapshot(name string) error {
+	emulator, ok := g.snapshots[name]
+	if !ok {
+		return fmt.Errorf("Could not find snapshot with name %s", name)
+	}
+	g.backend.SetEmulator(emulator)
+	return nil
+}
+
+func (g *EmulatorGateway) ListSnapshots() []string {
+	return maps.Keys(g.snapshots)
 }
