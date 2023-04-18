@@ -24,6 +24,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-emulator/convert/sdk"
 	"github.com/onflow/flow-emulator/server/backend"
@@ -315,4 +316,14 @@ func (g *EmulatorGateway) GetLatestProtocolStateSnapshot() ([]byte, error) {
 // SecureConnection placeholder func to complete gateway interface implementation
 func (g *EmulatorGateway) SecureConnection() bool {
 	return false
+}
+
+// Get Coverage report
+func (g *EmulatorGateway) GetCoverageReport() *runtime.CoverageReport {
+	return g.emulator.CoverageReport()
+}
+
+// Rollback to blockheight
+func (g *EmulatorGateway) RollbackToBlockHeight(height uint64) error {
+	return g.emulator.RollbackToBlockHeight(height)
 }
